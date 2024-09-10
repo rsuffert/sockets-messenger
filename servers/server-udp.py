@@ -22,6 +22,7 @@ def start_server():
 
 def handler(server_socket, data, addr):
     # handle client requests here
+    print(f"Received {data.decode()}")
     response = "Hello"
     server_socket.sendto(response.encode(), addr)
 
