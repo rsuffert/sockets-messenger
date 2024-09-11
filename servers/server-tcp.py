@@ -28,7 +28,7 @@ def handler(connection):
             data = connection.recv(1024).decode()
             print(f"Received {data}")
             if len(data) == 0: break
-            response = "Hello"
+            response = "{\"message\": \"Hello\"}"
             connection.sendall(response.encode())
         print("Client closed connection. Terminating...")
 
