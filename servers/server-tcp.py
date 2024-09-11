@@ -26,6 +26,7 @@ def handler(connection):
     with connection:
         while True:
             data = connection.recv(1024).decode()
+            print(f"Received {data}")
             if len(data) == 0: break
             response = "Hello"
             connection.sendall(response.encode())
