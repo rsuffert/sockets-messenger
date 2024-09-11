@@ -5,12 +5,15 @@ import json
 from typing import Dict, Any
 import argparse
 import regex
+import os
+import time
 
 # Load configs
 with open("settings.yaml", "r") as f:
     config = Box(yaml.safe_load(f))
 SERVER_HOST: str = config.server.ip_addr
 SERVER_PORT: int = config.server.port
+DELIMITER: str   = config.delimiter
 
 username = None
 
@@ -70,13 +73,14 @@ def parse(command: str) -> str:
             })
         case "sfile":
             with open(command_split[2], 'r') as f:
-                body = f.read()
+                f_content = f.read()
+                f_name = os.path.basename(f.name)
             return json.dumps({
                 "cmd": "sfile",
                 "user": username,
-                "args": command_split[1:],
+                "args": [command_split[1]],
                 "mimetype": "text/file",
-                "body": body
+                "body": f"{f_name}{DELIMITER}{f_content}"
             })
         case "list":
             return json.dumps({
@@ -109,7 +113,30 @@ def parse(command: str) -> str:
             raise ValueError(f"Unknown command: {command}")
         
 def show(server_resp : Dict[str, Any]):
-    # TODO: implement printing the server response
+    def generate_new_filename(filename: str) -> str:
+        base, extension = os.path.splitext(filename)
+        timestamp = int(time.time())
+        new_filename = f"{base}_{timestamp}{extension}"
+        return new_filename
+    
+    if server_resp['mimetype'] == "text/plain":
+        print(server_resp['body'])
+    elif server_resp['mimetype'] == "text/file":
+        body_fields = server_resp['body'].split(DELIMITER, 1)
+        if len(body_fields) != 2:
+            print("The server response body has an unexpected format. Please retry sending the request.")
+            return
+        file_name = body_fields[0]
+        print(f"Writing file '{file_name}'...")
+        if os.path.exists(file_name):
+            print(f"File '{file_name}' already exists.")
+            while os.path.exists(file_name):
+                file_name = generate_new_filename(file_name)
+            print(f"Writing file content to '{file_name}' instead.")
+        file_content = body_fields[1]
+        with open(file_name, 'w') as f:
+            f.write(file_content)
+
     print(server_resp)
 
 def start_client():
