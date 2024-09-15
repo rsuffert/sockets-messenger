@@ -1,4 +1,4 @@
 server:
   ip_addr: localhost
   port: 8080
-delimiter: @@@DELIM@@@
+delimiter: "@@@DELIM@@@"

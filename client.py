@@ -4,7 +4,7 @@ import yaml
 import json
 from typing import Dict, Any
 import argparse
-import regex
+import re
 import os
 import time
 
@@ -55,8 +55,16 @@ class UniformSocket:
         self._close()
 
 def parse(command: str) -> str:
+    def split(command: str) -> list:
+        # Regex pattern explanation:
+        # - "(\"[^\"]+\")" captures everything inside double quotes as a group
+        # - "|(\S+)" matches non-whitespace sequences outside of quotes
+        pattern = r'\"([^\"]+)\"|(\S+)'
+        matches = re.findall(pattern, command)
+        return [m[0] if m[0] else m[1] for m in matches]
+
     global username
-    command_split = regex.split("\s+", command)
+    command_split = split(command)
     match command_split[0]:
         case "nuser":
             return json.dumps({
@@ -136,8 +144,6 @@ def show(server_resp : Dict[str, Any]):
         file_content = body_fields[1]
         with open(file_name, 'w') as f:
             f.write(file_content)
-
-    print(server_resp)
 
 def start_client():
     parser = argparse.ArgumentParser()

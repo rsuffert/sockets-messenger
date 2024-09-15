@@ -2,6 +2,7 @@ import socket
 import threading
 from box import Box
 import yaml
+from messenger import Messenger
 
 # Load config
 with open("settings.yaml", "r") as file:
@@ -9,21 +10,18 @@ with open("settings.yaml", "r") as file:
 
 HOST: str = config.server.ip_addr
 PORT: int = config.server.port
+m = Messenger()
 
 def start_server():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server_socket:
         server_socket.bind((HOST, PORT))
-        print(f"Server listening on {HOST}:{PORT}")
         while True:
             data, addr = server_socket.recvfrom(1024)
-            print(f"Received data from {addr}")
             t = threading.Thread(target=handler, args=(server_socket, data, addr))
             t.start()
 
 def handler(server_socket, data, addr):
-    # handle client requests here
-    print(f"Received {data.decode()}")
-    response = "{\"message\": \"Hello\"}"
+    response = m.map_and_handle(data)
     server_socket.sendto(response.encode(), addr)
 
 if __name__ == "__main__":
