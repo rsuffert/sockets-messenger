@@ -3,7 +3,7 @@
 import threading
 import json
 from datetime import datetime
-from typing import Tuple, Dict, Any
+from typing import Tuple
 
 class Messenger:
     def __init__(self):
@@ -73,84 +73,46 @@ class Messenger:
                 "body": "couldn't convert message to JSON"
             })
         
+        status = 0
+        mime   = "text/plain"
+        body   = "OK"
+
         match json_message['cmd'].strip():
             case "nuser":
                 try: self.nuser(json_message['args'][0])
                 except Exception as e:
-                    return json.dumps({
-                        "status": 1,
-                        "mimetype": "text/plain",
-                        "body": str(e)
-                    })
-                return json.dumps({
-                    "status": 0,
-                    "mimetype": "text/plain",
-                    "body": "OK"
-                })
+                    status = 1
+                    body = str(e)
             case "smsg":
                 try: self.smsg(json_message['user'], json_message['args'][0], json_message['body'])
                 except Exception as e:
-                    return json.dumps({
-                        "status": 1,
-                        "mimetype": "text/plain",
-                        "body": str(e)
-                    })
-                return json.dumps({
-                    "status": 0,
-                    "mimetype": "text/plain",
-                    "body": "OK"
-                })
+                    status = 1
+                    body = str(e)
             case "sfile":
                 try: self.sfile(json_message['user'], json_message['args'][0], json_message['body'])
                 except Exception as e:
-                    return json.dumps({
-                        "status": 1,
-                        "mimetype": "text/plain",
-                        "body": str(e)
-                    })
-                return json.dumps({
-                  "status": 0,
-                  "mimetype": "text/plain",
-                  "body": "OK"  
-                })
+                    status = 1
+                    body = str(e)
             case "list":
-                try: res = self.list(json_message['user'])
+                try: body = self.list(json_message['user'])
                 except Exception as e:
-                    return json.dumps({
-                        "status": 1,
-                        "mimetype": "text/plain",
-                        "body": str(e)
-                    })
-                return json.dumps({
-                    "status": 0,
-                    "mimetype": "text/plain",
-                    "body": res
-                })
+                    status = 1
+                    body = str(e)
             case "open":
-                try: 
-                    type, content = self.open(json_message['user'], int(json_message['args'][0]))
-                    print(content)
+                try:
+                    type, body = self.open(json_message['user'], int(json_message['args'][0]))
+                    mime = "text/file" if type == "file" else "text/plain"
                 except Exception as e:
-                    return json.dumps({
-                        "status": 1,
-                        "mimetype": "text/plain",
-                        "body": str(e)
-                    })
-                return json.dumps({
-                   "status": 0,
-                   "mimetype": "text/file" if type == "file" else "text/plain",
-                   "body": content
-                })
+                    status = 1
+                    body = str(e)
             case "del":
                 try: self.delete(json_message['user'], int(json_message['args'][0]))
                 except Exception as e:
-                    return json.dumps({
-                        "status": 1,
-                        "mimetype": "text/plain",
-                        "body": str(e)
-                    })
-                return json.dumps({
-                    "status": 1,
-                    "mimetype": "text/plain",
-                    "body": "OK"
-                })
+                    status = 1
+                    body = str(e)
+
+        return json.dumps({
+            "status": status,
+            "mimetype": mime,
+            "body": body
+        })
