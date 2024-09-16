@@ -16,8 +16,8 @@ class Messenger:
             self._cache[username] = []
 
     def smsg(self, origin: str, destination: str, msg: str):
-        self._check_user_exists(destination)
         self._check_user_exists(origin)
+        self._check_user_exists(destination)
         with self._lock:
             self._cache[destination].append({
                 "from": origin,
@@ -27,8 +27,8 @@ class Messenger:
             })
     
     def sfile(self, origin: str, destination: str, file: str):
-        self._check_user_exists(destination)
         self._check_user_exists(origin)
+        self._check_user_exists(destination)
         with self._lock:
             self._cache[destination].append({
                 "from": origin,
@@ -61,6 +61,8 @@ class Messenger:
             del self._cache[origin][idx]
 
     def _check_user_exists(self, username: str):
+        if not username:
+            raise ValueError(f"'{username}' user does not exist (have you logged in?)")
         if username not in self._cache:
             raise ValueError(f"'{username}' user does not exist")
 
@@ -77,19 +79,26 @@ class Messenger:
         mime   = "text/plain"
         body   = "OK"
 
+        if not 'cmd' in json_message:
+            return json.loads({
+                "status": 1,
+                "mimetype": "text/plain",
+                "body": "must specify the 'cmd' field"
+            })
+
         match json_message['cmd'].strip():
             case "nuser":
-                try: self.nuser(json_message['args'][0])
+                try: self.nuser(json_message['args']['username'])
                 except Exception as e:
                     status = 1
                     body = str(e)
             case "smsg":
-                try: self.smsg(json_message['user'], json_message['args'][0], json_message['body'])
+                try: self.smsg(json_message['user'], json_message['args']['destination'], json_message['body'])
                 except Exception as e:
                     status = 1
                     body = str(e)
             case "sfile":
-                try: self.sfile(json_message['user'], json_message['args'][0], json_message['body'])
+                try: self.sfile(json_message['user'], json_message['args']['destination'], json_message['body'])
                 except Exception as e:
                     status = 1
                     body = str(e)
@@ -100,13 +109,13 @@ class Messenger:
                     body = str(e)
             case "open":
                 try:
-                    type, body = self.open(json_message['user'], int(json_message['args'][0]))
+                    type, body = self.open(json_message['user'], int(json_message['args']['message-index']))
                     mime = "text/file" if type == "file" else "text/plain"
                 except Exception as e:
                     status = 1
                     body = str(e)
             case "del":
-                try: self.delete(json_message['user'], int(json_message['args'][0]))
+                try: self.delete(json_message['user'], int(json_message['args']['message-index']))
                 except Exception as e:
                     status = 1
                     body = str(e)

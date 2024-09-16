@@ -65,28 +65,32 @@ def parse(command: str) -> str:
 
     global username
     command_split = split(command)
+    if len(command_split) < 1: raise IndexError("Must specify a command")
     match command_split[0]:
         case "nuser":
+            if len(command_split) < 2: raise IndexError("Usage: nuser <username>")
             return json.dumps({
                 "cmd": "nuser",
-                "args": [command_split[1]]
+                "args": {"username": command_split[1]}
             })
         case "smsg":
+            if len(command_split) < 3: raise IndexError("Usage: smsg <destination> {message}")
             return json.dumps({
                 "cmd": "smsg",
                 "user": username,
-                "args": [command_split[1]],
+                "args": {"destination": command_split[1]},
                 "mimetype": "text/plain",
                 "body": command_split[2]
             })
         case "sfile":
+            if len(command_split) < 3: raise IndexError("Usage: sfile <destination> {file-path}")
             with open(command_split[2], 'r') as f:
                 f_content = f.read()
                 f_name = os.path.basename(f.name)
             return json.dumps({
                 "cmd": "sfile",
                 "user": username,
-                "args": [command_split[1]],
+                "args": {"destination": command_split[1]},
                 "mimetype": "text/file",
                 "body": f"{f_name}{DELIMITER}{f_content}"
             })
@@ -94,27 +98,32 @@ def parse(command: str) -> str:
             return json.dumps({
                 "cmd": "list",
                 "user": username,
-                "args": [],
+                "args": {},
                 "mimetype": "text/plain",
                 "body": ""
             })
         case "open":
+            if len(command_split) < 2: raise IndexError("Usage: open <message-index>")
+            if not command_split[1].isdigit(): raise TypeError("argument <message-index> must be a natural number")
             return json.dumps({
                 "cmd": "open",
                 "user": username,
-                "args": [command_split[1]],
+                "args": {"message-index": int(command_split[1])},
                 "mimetype": "text/plain",
                 "body": ""
             })
         case "del":
+            if len(command_split) < 2: raise IndexError("Usage: del <message-index>")
+            if not command_split[1].is_digit(): raise TypeError("argument <message-index> must be a natural number")
             return json.dumps({
                 "cmd": "del",
                 "user": username,
-                "args": [command_split[1]],
+                "args": {"message-index": int(command_split[1])},
                 "mimetype": "text/plain",
                 "body": ""
             })
         case "login":
+            if len(command_split) < 2: raise IndexError("Usage: login <username>")
             username = command_split[1]
             return None
         case _:
@@ -155,10 +164,10 @@ def start_client():
         while True:
             command = input("> ")
             if command == "logout": break
-            try: message = parse(command)
-            except ValueError as e: print(e)
-            if message:
-                show(us.send(message))
+            try: 
+                message = parse(command)
+                if message: show(us.send(message))
+            except Exception as e: print(e)
 
 if __name__ == "__main__":
     start_client()
