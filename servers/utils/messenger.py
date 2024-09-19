@@ -85,10 +85,13 @@ class Messenger:
     @_error_handler
     def map_and_handle(self, message: str) -> str:
         json_message = json.loads(message)
+        
         status = 0
         mime   = "text/plain"
         body   = "OK"
-        match json_message['cmd'].strip():
+        
+        cmd = json_message['cmd'].strip()
+        match cmd:
             case "nuser": self.nuser(json_message['args']['username'])
             case "smsg" : self.smsg(json_message['user'], json_message['args']['destination'], json_message['body'])
             case "sfile": self.sfile(json_message['user'], json_message['args']['destination'], json_message['body'])
@@ -98,6 +101,7 @@ class Messenger:
             case "open" :
                 type, body = self.open(json_message['user'], int(json_message['args']['message-index']))
                 mime = "text/file" if type == "file" else "text/plain"
+            case _: raise ValueError(f"Unknown command: '{cmd}'")
         return json.dumps({
             "status": status,
             "mimetype": mime,
