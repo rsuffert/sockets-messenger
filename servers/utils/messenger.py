@@ -10,11 +10,11 @@ def _error_handler(func):
         try:
             return func(*args, **kwargs)
         except KeyError as e:
-            return {"status": 1, "mimetype": "text/plain", "body": f"Missing field in the request: {str(e)}"}
+            return json.dumps({"status": 1, "mimetype": "text/plain", "body": f"Missing field in the request: {str(e)}"})
         except json.JSONDecodeError as e:
             return json.dumps({"status": 1, "mimetype": "text/plain", "body": "Couldn't convert message to JSON"})
         except Exception as e:
-            return {"status": 1, "mimetype": "text/plain", "body": str(e)}
+            return json.dumps({"status": 1, "mimetype": "text/plain", "body": str(e)})
     return wrapper
 
 class Messenger:
