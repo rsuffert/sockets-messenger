@@ -6,6 +6,10 @@ from datetime import datetime
 from typing import Tuple
 
 class Messenger:
+    """
+    Implements the core of the messenger application in a thread-safe manner, exposing commands to operate over the
+    cache of messages swapped between the users.
+    """
     def __init__(self):
         self._cache = {}
         self._lock  = threading.Lock()

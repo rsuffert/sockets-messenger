@@ -2,7 +2,10 @@ import socket
 import threading
 from box import Box
 import yaml
-from messenger import Messenger
+from utils.messenger import Messenger
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Load config
 with open("settings.yaml", "r") as file:
@@ -21,6 +24,7 @@ def start_server():
             t.start()
 
 def handler(server_socket, data, addr):
+    logging.info(f"Request received: {data}")
     response = m.map_and_handle(data)
     server_socket.sendto(response.encode(), addr)
 
