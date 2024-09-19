@@ -61,7 +61,7 @@ class Messenger:
             for msg in self._cache[origin]:
                 msgs.append(json.dumps(f"{counter}. {msg['type']} from '{msg['from']}' at {msg['at']}"))
                 counter += 1
-        return '\n'.join(msgs)
+        return '\n'.join(msgs) if counter > 0 else "No messages"
     
     def open(self, origin: str, idx: int) -> Tuple[str, str]:
         self._check_user_exists(origin)
@@ -78,7 +78,7 @@ class Messenger:
 
     def _check_user_exists(self, username: str):
         if not username:
-            raise ValueError(f"'{username}' user does not exist (have you logged in?)")
+            raise ValueError(f"have you logged in?")
         if username not in self._cache:
             raise ValueError(f"'{username}' user does not exist")
 

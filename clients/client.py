@@ -14,8 +14,6 @@ SERVER_HOST: str = config.server.ip_addr
 SERVER_PORT: int = config.server.port
 DELIMITER: str   = config.delimiter
 
-username = None
-
 def start_client():
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--protocol", type=str, choices=["TCP", "UDP"], required=True, help="Specify the transport protocol to use (TCP or UDP)")

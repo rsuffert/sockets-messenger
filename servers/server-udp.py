@@ -5,7 +5,7 @@ import yaml
 from utils.messenger import Messenger
 import logging
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(levelname)s: %(asctime)s - %(message)s')
 
 # Load config
 with open("settings.yaml", "r") as file:
@@ -24,8 +24,9 @@ def start_server():
             t.start()
 
 def handler(server_socket, data, addr):
-    logging.info(f"Request received: {data}")
+    logging.info(f"Request received from {addr}: {data}")
     response = m.map_and_handle(data)
+    logging.info(f"Sending response to {addr}: {response}")
     server_socket.sendto(response.encode(), addr)
 
 if __name__ == "__main__":

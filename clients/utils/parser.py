@@ -11,6 +11,8 @@ with open("settings.yaml", "r") as f:
 
 DELIMITER: str   = config.delimiter
 
+username = None
+
 def parse(command: str) -> str:
     """Parses a command typed by the user."""
     def split(command: str) -> list:
@@ -72,7 +74,7 @@ def parse(command: str) -> str:
             })
         case "del":
             if len(command_split) < 2: raise IndexError("Usage: del <message-index>")
-            if not command_split[1].is_digit(): raise TypeError("argument <message-index> must be a natural number")
+            if not command_split[1].isdigit(): raise TypeError("argument <message-index> must be a natural number")
             return json.dumps({
                 "cmd": "del",
                 "user": username,
