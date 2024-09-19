@@ -5,6 +5,18 @@ import json
 from datetime import datetime
 from typing import Tuple
 
+def _error_handler(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyError as e:
+            return {"status": 1, "mimetype": "text/plain", "body": f"Missing field in the request: {str(e)}"}
+        except json.JSONDecodeError as e:
+            return json.dumps({"status": 1, "mimetype": "text/plain", "body": "Couldn't convert message to JSON"})
+        except Exception as e:
+            return {"status": 1, "mimetype": "text/plain", "body": str(e)}
+    return wrapper
+
 class Messenger:
     """
     Implements the core of the messenger application in a thread-safe manner, exposing commands to operate over the
@@ -70,60 +82,22 @@ class Messenger:
         if username not in self._cache:
             raise ValueError(f"'{username}' user does not exist")
 
+    @_error_handler
     def map_and_handle(self, message: str) -> str:
-        try: json_message = json.loads(message)
-        except json.decoder.JSONDecodeError:
-            return json.dumps({
-                "status": 1,
-                "mimetype": "text/plain",
-                "body": "couldn't convert message to JSON"
-            })
-        
+        json_message = json.loads(message)
         status = 0
         mime   = "text/plain"
         body   = "OK"
-
-        if not 'cmd' in json_message:
-            return json.loads({
-                "status": 1,
-                "mimetype": "text/plain",
-                "body": "must specify the 'cmd' field"
-            })
-
         match json_message['cmd'].strip():
-            case "nuser":
-                try: self.nuser(json_message['args']['username'])
-                except Exception as e:
-                    status = 1
-                    body = str(e)
-            case "smsg":
-                try: self.smsg(json_message['user'], json_message['args']['destination'], json_message['body'])
-                except Exception as e:
-                    status = 1
-                    body = str(e)
-            case "sfile":
-                try: self.sfile(json_message['user'], json_message['args']['destination'], json_message['body'])
-                except Exception as e:
-                    status = 1
-                    body = str(e)
-            case "list":
-                try: body = self.list(json_message['user'])
-                except Exception as e:
-                    status = 1
-                    body = str(e)
-            case "open":
-                try:
-                    type, body = self.open(json_message['user'], int(json_message['args']['message-index']))
-                    mime = "text/file" if type == "file" else "text/plain"
-                except Exception as e:
-                    status = 1
-                    body = str(e)
-            case "del":
-                try: self.delete(json_message['user'], int(json_message['args']['message-index']))
-                except Exception as e:
-                    status = 1
-                    body = str(e)
-
+            case "nuser": self.nuser(json_message['args']['username'])
+            case "smsg" : self.smsg(json_message['user'], json_message['args']['destination'], json_message['body'])
+            case "sfile": self.sfile(json_message['user'], json_message['args']['destination'], json_message['body'])
+            case "del"  : self.delete(json_message['user'], int(json_message['args']['message-index']))
+            case "list" :
+                body = self.list(json_message['user'])
+            case "open" :
+                type, body = self.open(json_message['user'], int(json_message['args']['message-index']))
+                mime = "text/file" if type == "file" else "text/plain"
         return json.dumps({
             "status": status,
             "mimetype": mime,
