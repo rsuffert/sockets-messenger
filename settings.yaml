@@ -2,4 +2,4 @@ server:
   ip_addr: localhost
   port: 8080
   buffer_size: 4096
-delimiter: "@@@DELIM@@@"
+file_delimiter: "@@@DELIM@@@"

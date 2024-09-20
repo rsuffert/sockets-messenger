@@ -16,7 +16,7 @@ with open("settings.yaml", "r") as f:
 SERVER_HOST: str = config.server.ip_addr
 SERVER_PORT: int = config.server.port
 SERVER_BUFFER_SIZE: int = config.server.buffer_size
-DELIMITER: str   = config.delimiter
+FILE_DELIMITER: str   = config.file_delimiter
 
 def start_client():
     parser = argparse.ArgumentParser()
@@ -51,7 +51,7 @@ def show(server_resp : Dict[str, Any]):
     if server_resp['mimetype'] == "text/plain":
         print(server_resp['body'])
     elif server_resp['mimetype'] == "text/file":
-        body_fields = server_resp['body'].split(DELIMITER, 1)
+        body_fields = server_resp['body'].split(FILE_DELIMITER, 1)
         if len(body_fields) != 2:
             print("The server response body has an unexpected format. Please retry sending the request.")
             return

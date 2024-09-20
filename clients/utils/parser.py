@@ -9,7 +9,7 @@ import re
 with open("settings.yaml", "r") as f:
     config = Box(yaml.safe_load(f))
 
-DELIMITER: str   = config.delimiter
+FILE_DELIMITER: str   = config.file_delimiter
 
 username = None
 
@@ -52,7 +52,7 @@ def parse(command: str) -> str:
                 "user": username,
                 "args": {"destination": command_split[1]},
                 "mimetype": "text/file",
-                "body": f"{f_name}{DELIMITER}{f_content}"
+                "body": f"{f_name}{FILE_DELIMITER}{f_content}"
             })
         case "list":
             return json.dumps({
