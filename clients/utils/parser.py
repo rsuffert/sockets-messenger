@@ -26,16 +26,18 @@ def parse(command: str) -> str:
     global username
     command_split = split(command)
     if len(command_split) < 1: raise IndexError("Must specify a command")
+
+    msg = ""
     match command_split[0]:
         case "nuser":
             if len(command_split) < 2: raise IndexError("Usage: nuser <username>")
-            return json.dumps({
+            msg = json.dumps({
                 "cmd": "nuser",
                 "args": {"username": command_split[1]}
             })
         case "smsg":
             if len(command_split) < 3: raise IndexError("Usage: smsg <destination> {message}")
-            return json.dumps({
+            msg = json.dumps({
                 "cmd": "smsg",
                 "user": username,
                 "args": {"destination": command_split[1]},
@@ -47,7 +49,7 @@ def parse(command: str) -> str:
             with open(command_split[2], 'r') as f:
                 f_content = f.read()
                 f_name = os.path.basename(f.name)
-            return json.dumps({
+            msg = json.dumps({
                 "cmd": "sfile",
                 "user": username,
                 "args": {"destination": command_split[1]},
@@ -55,7 +57,7 @@ def parse(command: str) -> str:
                 "body": f"{f_name}{FILE_DELIMITER}{f_content}"
             })
         case "list":
-            return json.dumps({
+            msg = json.dumps({
                 "cmd": "list",
                 "user": username,
                 "args": {},
@@ -65,7 +67,7 @@ def parse(command: str) -> str:
         case "open":
             if len(command_split) < 2: raise IndexError("Usage: open <message-index>")
             if not command_split[1].isdigit(): raise TypeError("argument <message-index> must be a natural number")
-            return json.dumps({
+            msg = json.dumps({
                 "cmd": "open",
                 "user": username,
                 "args": {"message-index": int(command_split[1])},
@@ -75,7 +77,7 @@ def parse(command: str) -> str:
         case "del":
             if len(command_split) < 2: raise IndexError("Usage: del <message-index>")
             if not command_split[1].isdigit(): raise TypeError("argument <message-index> must be a natural number")
-            return json.dumps({
+            msg = json.dumps({
                 "cmd": "del",
                 "user": username,
                 "args": {"message-index": int(command_split[1])},
@@ -88,3 +90,4 @@ def parse(command: str) -> str:
             return None
         case _:
             raise ValueError(f"Unknown command: {command}")
+    return msg
