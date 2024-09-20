@@ -13,6 +13,7 @@ with open("settings.yaml", "r") as file:
 
 HOST: str = config.server.ip_addr
 PORT: int = config.server.port
+BUFFER_SIZE: int = config.server.buffer_size
 m = Messenger()
 
 def start_server():
@@ -27,7 +28,7 @@ def start_server():
 def handler(connection, address):
     with connection:
         while True:
-            data = connection.recv(1024).decode()
+            data = connection.recv(BUFFER_SIZE).decode()
             logging.info(f"Request received from {address}: {data}")
             if len(data) == 0: break
             response = m.map_and_handle(data)

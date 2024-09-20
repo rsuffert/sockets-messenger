@@ -13,13 +13,14 @@ with open("settings.yaml", "r") as file:
 
 HOST: str = config.server.ip_addr
 PORT: int = config.server.port
+BUFFER_SIZE: int = config.server.buffer_size
 m = Messenger()
 
 def start_server():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server_socket:
         server_socket.bind((HOST, PORT))
         while True:
-            data, addr = server_socket.recvfrom(1024)
+            data, addr = server_socket.recvfrom(BUFFER_SIZE)
             t = threading.Thread(target=handler, args=(server_socket, data, addr))
             t.start()
 

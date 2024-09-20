@@ -6,12 +6,16 @@ import os
 import time
 from utils.usockets import UniformClientSocket
 from utils.parser import parse
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(asctime)s - %(message)s')
 
 # Load configs
 with open("settings.yaml", "r") as f:
     config = Box(yaml.safe_load(f))
 SERVER_HOST: str = config.server.ip_addr
 SERVER_PORT: int = config.server.port
+SERVER_BUFFER_SIZE: int = config.server.buffer_size
 DELIMITER: str   = config.delimiter
 
 def start_client():
@@ -26,7 +30,14 @@ def start_client():
             if command.strip() == "logout": break
             try: 
                 message = parse(command)
-                if message: show(us.send(message))
+                if message:
+                    if len(message) > SERVER_BUFFER_SIZE:
+                        print("Message is too large: size not supported by the server")
+                        continue
+                    before = time.time()
+                    resp = us.send(message)
+                    logging.info(f"Received response after: {(time.time()-before)*(10**3)} ms")
+                    show(resp)
             except Exception as e: print(e)
         
 def show(server_resp : Dict[str, Any]):
