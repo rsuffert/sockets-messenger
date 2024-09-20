@@ -14,6 +14,7 @@ with open("settings.yaml", "r") as file:
 HOST: str = config.server.ip_addr
 PORT: int = config.server.port
 BUFFER_SIZE: int = config.server.buffer_size
+REQUEST_DELIMITER: str = config.request_delimiter
 m = Messenger()
 
 def start_server():
@@ -26,14 +27,19 @@ def start_server():
             t.start()
 
 def handler(connection, address):
+    buffer = ""
     with connection:
         while True:
-            data = connection.recv(BUFFER_SIZE).decode()
-            logging.info(f"Request received from {address}: {data}")
-            if len(data) == 0: break
-            response = m.map_and_handle(data)
-            logging.info(f"Sending response to {address}: {response}")
-            connection.sendall(response.encode())
+            chunk = connection.recv(BUFFER_SIZE).decode()
+            logging.info(f"Request received from {address}: {chunk}")
+            if len(chunk) == 0: break
+            buffer += chunk
+            if buffer.endswith(REQUEST_DELIMITER):
+                message = buffer.removesuffix(REQUEST_DELIMITER)
+                response = m.map_and_handle(message)
+                logging.info(f"Sending response to {address}: {response}")
+                connection.sendall(response.encode())
+                buffer = ""
 
 if __name__ == "__main__":
     start_server()

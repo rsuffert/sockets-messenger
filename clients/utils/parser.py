@@ -10,6 +10,7 @@ with open("settings.yaml", "r") as f:
     config = Box(yaml.safe_load(f))
 
 FILE_DELIMITER: str   = config.file_delimiter
+REQUEST_DELIMITER: str = config.request_delimiter
 
 username = None
 
@@ -90,4 +91,4 @@ def parse(command: str) -> str:
             return None
         case _:
             raise ValueError(f"Unknown command: {command}")
-    return msg
+    return msg + REQUEST_DELIMITER

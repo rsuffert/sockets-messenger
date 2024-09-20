@@ -15,7 +15,6 @@ with open("settings.yaml", "r") as f:
     config = Box(yaml.safe_load(f))
 SERVER_HOST: str = config.server.ip_addr
 SERVER_PORT: int = config.server.port
-SERVER_BUFFER_SIZE: int = config.server.buffer_size
 FILE_DELIMITER: str   = config.file_delimiter
 
 def start_client():
@@ -31,9 +30,6 @@ def start_client():
             try: 
                 message = parse(command)
                 if message:
-                    if len(message) > SERVER_BUFFER_SIZE:
-                        print("Message is too large: size not supported by the server")
-                        continue
                     before = time.time()
                     resp = us.send(message)
                     logging.info(f"Received response after: {(time.time()-before)*(10**3)} ms")

@@ -4,17 +4,24 @@ import threading
 import json
 from datetime import datetime
 from typing import Tuple
+from box import Box
+import yaml
+
+# Load configs
+with open("settings.yaml", "r") as f:
+    config = Box(yaml.safe_load(f))
+REQUEST_DELIMITER: str = config.request_delimiter
 
 def _error_handler(func):
     def wrapper(*args, **kwargs):
         try:
-            return func(*args, **kwargs)
+            return func(*args, **kwargs) + REQUEST_DELIMITER
         except KeyError as e:
-            return json.dumps({"status": 1, "mimetype": "text/plain", "body": f"Missing field in the request: {str(e)}"})
+            return json.dumps({"status": 1, "mimetype": "text/plain", "body": f"Missing field in the request: {str(e)}"}) + REQUEST_DELIMITER
         except json.JSONDecodeError as e:
-            return json.dumps({"status": 1, "mimetype": "text/plain", "body": "Couldn't convert message to JSON"})
+            return json.dumps({"status": 1, "mimetype": "text/plain", "body": "Couldn't convert message to JSON"}) + REQUEST_DELIMITER
         except Exception as e:
-            return json.dumps({"status": 1, "mimetype": "text/plain", "body": str(e)})
+            return json.dumps({"status": 1, "mimetype": "text/plain", "body": str(e)}) + REQUEST_DELIMITER
     return wrapper
 
 class Messenger:

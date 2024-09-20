@@ -3,6 +3,13 @@
 import socket
 from typing import Dict, Any
 import json
+from box import Box
+import yaml
+
+# Load configs
+with open("settings.yaml", "r") as f:
+    config = Box(yaml.safe_load(f))
+REQUEST_DELIMITER: str   = config.request_delimiter
 
 class UniformClientSocket:
     """Implements a uniform interface for client sockets, doesn't matter if it is a TCP or UDP socket."""
@@ -21,11 +28,19 @@ class UniformClientSocket:
     def send(self, message: str) -> Dict[str, Any]:
         if self._is_tcp:
             self._sock.sendall(message.encode())
-            response = self._sock.recv(1024)
+            buffer = ""
+            while True:
+                chunk = self._sock.recv(1024).decode()
+                buffer += chunk
+                if len(chunk) == 0 or buffer.endswith(REQUEST_DELIMITER): break
         else:
             self._sock.sendto(message.encode(), (self._host, self._port))
-            response, _ = self._sock.recvfrom(1024)
-        return json.loads(response)
+            buffer = ""
+            while True:
+                chunk, _ = self._sock.recvfrom(1024)
+                buffer += chunk.decode()
+                if buffer.endswith(REQUEST_DELIMITER): break
+        return json.loads(buffer.removesuffix(REQUEST_DELIMITER))
     
     def _connect(self):
         if self._is_tcp:
