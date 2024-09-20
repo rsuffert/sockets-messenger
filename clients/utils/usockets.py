@@ -1,7 +1,7 @@
 # usockets
 
 import socket
-from typing import Dict, Any
+from typing import Dict, Any, List
 import json
 from box import Box
 import yaml
@@ -9,7 +9,8 @@ import yaml
 # Load configs
 with open("settings.yaml", "r") as f:
     config = Box(yaml.safe_load(f))
-REQUEST_DELIMITER: str   = config.request_delimiter
+REQUEST_DELIMITER:  str = config.request_delimiter
+SERVER_BUFFER_SIZE: int = config.server.buffer_size
 
 class UniformClientSocket:
     """Implements a uniform interface for client sockets, doesn't matter if it is a TCP or UDP socket."""
@@ -34,7 +35,9 @@ class UniformClientSocket:
                 buffer += chunk
                 if len(chunk) == 0 or buffer.endswith(REQUEST_DELIMITER): break
         else:
-            self._sock.sendto(message.encode(), (self._host, self._port))
+            chunks = self._chunk_message(message)
+            for c in chunks:
+                self._sock.sendto(c.encode(), (self._host, self._port))
             buffer = ""
             while True:
                 chunk, _ = self._sock.recvfrom(1024)
@@ -48,6 +51,10 @@ class UniformClientSocket:
 
     def _close(self):
         self._sock.close()
+
+    def _chunk_message(self, message: str) -> List[str]:
+        max_chunk_size = SERVER_BUFFER_SIZE
+        return [message[i:i + max_chunk_size] for i in range(0, len(message), max_chunk_size)]
 
     def __enter__(self):
         self._connect()

@@ -4,6 +4,7 @@ from box import Box
 import yaml
 from utils.messenger import Messenger
 import logging
+from typing import List
 
 logging.basicConfig(level=logging.DEBUG, format='%(levelname)s: %(asctime)s - %(message)s')
 
@@ -14,7 +15,10 @@ with open("settings.yaml", "r") as file:
 HOST: str = config.server.ip_addr
 PORT: int = config.server.port
 BUFFER_SIZE: int = config.server.buffer_size
+REQUEST_DELIMITER: str = config.request_delimiter
 m = Messenger()
+buffer = {}
+lock = threading.Lock()
 
 def start_server():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server_socket:
@@ -26,9 +30,21 @@ def start_server():
 
 def handler(server_socket, data, addr):
     logging.info(f"Request received from {addr}: {data}")
-    response = m.map_and_handle(data)
+    with lock:
+        if addr not in buffer: buffer[addr] = ""
+        buffer[addr] += data.decode()
+        if not buffer[addr].endswith(REQUEST_DELIMITER): return
+        message = buffer[addr].removesuffix(REQUEST_DELIMITER)
+        del buffer[addr]
+    response = m.map_and_handle(message)
     logging.info(f"Sending response to {addr}: {response}")
-    server_socket.sendto(response.encode(), addr)
+    chunks = chunk_message(response)
+    for c in chunks:
+        server_socket.sendto(c.encode(), addr)
+
+def chunk_message(message: str) -> List[str]:
+    max_chunk_size = BUFFER_SIZE
+    return [message[i:i + max_chunk_size] for i in range(0, len(message), max_chunk_size)]
 
 if __name__ == "__main__":
     start_server()

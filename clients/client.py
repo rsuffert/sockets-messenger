@@ -15,7 +15,7 @@ with open("settings.yaml", "r") as f:
     config = Box(yaml.safe_load(f))
 SERVER_HOST: str = config.server.ip_addr
 SERVER_PORT: int = config.server.port
-FILE_DELIMITER: str   = config.file_delimiter
+FILE_DELIMITER: str = config.file_delimiter
 
 def start_client():
     parser = argparse.ArgumentParser()
