@@ -23,7 +23,7 @@ def start_client():
         message = None
         while True:
             command = input("> ")
-            if command == "logout": break
+            if command.strip() == "logout": break
             try: 
                 message = parse(command)
                 if message: show(us.send(message))
