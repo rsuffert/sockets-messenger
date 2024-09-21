@@ -13,7 +13,7 @@ with open("settings.yaml", "r") as file:
 
 HOST: str = config.server.ip_addr
 PORT: int = config.server.port
-BUFFER_SIZE: int = config.server.buffer_size
+SERVER_BUFFER_SIZE: int = config.server.buffer_size
 REQUEST_DELIMITER: str = config.request_delimiter
 m = Messenger()
 
@@ -30,7 +30,7 @@ def handler(connection, address):
     buffer = ""
     with connection:
         while True:
-            chunk = connection.recv(BUFFER_SIZE).decode()
+            chunk = connection.recv(SERVER_BUFFER_SIZE).decode()
             logging.info(f"Request received from {address}: {chunk}")
             if len(chunk) == 0: break
             buffer += chunk

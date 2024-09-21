@@ -14,7 +14,8 @@ with open("settings.yaml", "r") as file:
 
 HOST: str = config.server.ip_addr
 PORT: int = config.server.port
-BUFFER_SIZE: int = config.server.buffer_size
+SERVER_BUFFER_SIZE: int = config.server.buffer_size
+CLIENT_BUFFER_SIZE: int = config.client.buffer_size
 REQUEST_DELIMITER: str = config.request_delimiter
 m = Messenger()
 buffer = {}
@@ -24,7 +25,7 @@ def start_server():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as server_socket:
         server_socket.bind((HOST, PORT))
         while True:
-            data, addr = server_socket.recvfrom(BUFFER_SIZE)
+            data, addr = server_socket.recvfrom(SERVER_BUFFER_SIZE)
             t = threading.Thread(target=handler, args=(server_socket, data, addr))
             t.start()
 
@@ -43,7 +44,7 @@ def handler(server_socket, data, addr):
         server_socket.sendto(c.encode(), addr)
 
 def chunk_message(message: str) -> List[str]:
-    max_chunk_size = BUFFER_SIZE
+    max_chunk_size = CLIENT_BUFFER_SIZE
     return [message[i:i + max_chunk_size] for i in range(0, len(message), max_chunk_size)]
 
 if __name__ == "__main__":

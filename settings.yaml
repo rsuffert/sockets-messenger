@@ -4,3 +4,5 @@ server:
   buffer_size: 1024
 file_delimiter: "@@@DELIM@@@"
 request_delimiter: "@@@END@@@"
+client:
+  buffer_size: 1024

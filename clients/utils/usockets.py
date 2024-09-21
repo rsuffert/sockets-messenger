@@ -11,6 +11,7 @@ with open("settings.yaml", "r") as f:
     config = Box(yaml.safe_load(f))
 REQUEST_DELIMITER:  str = config.request_delimiter
 SERVER_BUFFER_SIZE: int = config.server.buffer_size
+CLIENT_BUFFER_SIZE: int = config.client.buffer_size
 
 class UniformClientSocket:
     """Implements a uniform interface for client sockets, doesn't matter if it is a TCP or UDP socket."""
@@ -31,7 +32,7 @@ class UniformClientSocket:
             self._sock.sendall(message.encode())
             buffer = ""
             while True:
-                chunk = self._sock.recv(1024).decode()
+                chunk = self._sock.recv(CLIENT_BUFFER_SIZE).decode()
                 buffer += chunk
                 if len(chunk) == 0 or buffer.endswith(REQUEST_DELIMITER): break
         else:
@@ -40,7 +41,7 @@ class UniformClientSocket:
                 self._sock.sendto(c.encode(), (self._host, self._port))
             buffer = ""
             while True:
-                chunk, _ = self._sock.recvfrom(1024)
+                chunk, _ = self._sock.recvfrom(CLIENT_BUFFER_SIZE)
                 buffer += chunk.decode()
                 if buffer.endswith(REQUEST_DELIMITER): break
         return json.loads(buffer.removesuffix(REQUEST_DELIMITER))
